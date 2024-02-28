@@ -1,7 +1,8 @@
 section .data
-    filename db "/home/test/example.txt", 0
+    filename db "/home/test/example1.txt", 0
     error_file_nf db "file not found", 0
     buffer_size equ 10000
+    err_length equ ($ - error_file_nf)
     
 section .bss
     buffer resb buffer_size
@@ -11,6 +12,7 @@ section .text
 global main
 
 main:
+    mov ebp, esp; for correct debugging
 
 open_file:
     mov eax, 5 ; syscall open file
@@ -45,8 +47,9 @@ check_error:
     test eax, eax
     jns no_error ; if error happened, eax is negative
     mov eax, 4 ; write
-    mov ebx, 2 ; to stderr
-    mov ecx, error_file_nf
+    mov ebx, 1 ; to stdout
+    mov ecx, error_file_nf ; from error msg
+    mov edx, err_length ; error msg length
     int 0x80
     call exit
     no_error:
