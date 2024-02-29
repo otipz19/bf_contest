@@ -1,9 +1,7 @@
 section .data
-    filename db "/home/test/bf_contest/bin/text.txt", 0
     error_file_nf db "file not found", 0
     buffer_size equ 10000
-    err_length equ ($ - error_file_nf)
-    filename_length equ ($ - filename)
+    err_length equ 15
     
 section .bss
     buffer resb buffer_size
@@ -13,18 +11,12 @@ section .text
 global main
 
 main:
-    mov ebp, esp; for correct debugging
-    mov eax, 4 ; write
-    mov ebx, 1 ; to stdout
-    mov ecx, [esp + 4] ; from first console argument
-    mov edx, filename_length
-    int 0x80
-    call exit
-    
+    pop eax ; pop args counter
+    pop eax ; pop program name 
 
 open_file:
     mov eax, 5 ; syscall open file
-    mov ebx, [esp + 4] ; filename address from first console argument
+    pop ebx ; pop filename address from first console argument
     mov ecx, 0 ; open read-only
     int 0x80
     call check_error
