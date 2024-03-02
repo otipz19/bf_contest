@@ -1,4 +1,4 @@
-.model small
+.model tiny
 
 .stack 100h
  
