@@ -8,7 +8,7 @@
     err_read_length equ ($ - error_read)
     err_length equ 15
 
-    code_buffer_size equ 10000
+    code_buffer_size equ 10001
     data_buffer_size equ 10000
 
     code_buffer db code_buffer_size dup(?) ; BYTE!
@@ -47,6 +47,12 @@ read_file:
     int 21h
     call check_error_2
     mov code_read, ax
+
+place_zero:
+    lea bx, code_buffer
+    add bx, code_read
+    inc bx
+    mov ds:[bx], byte ptr 0
 
 init_interpret:
     lea ax, code_buffer
@@ -119,9 +125,9 @@ interpret:
         
         break:
             inc code_pointer
-            inc counter
-            mov ax, counter
-            cmp ax, code_read
+            mov bx, code_pointer
+            mov ah, byte ptr ds:[bx]
+            cmp ah, 0
             jne interpret_loop
             mov ah, 4ch
             int 21h
