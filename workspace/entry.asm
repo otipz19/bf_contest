@@ -10,16 +10,20 @@
 
     code_buffer_size equ 10001
     data_buffer_size equ 10000
-
-    code_buffer db code_buffer_size dup(?) ; BYTE!
-    data_buffer dw data_buffer_size dup(?) ; WORD!
-    file_descriptor dw 1 dup(?)
-    code_read dw 1 dup(?)
     
     code_pointer dw 0
     data_pointer dw 0
 
     counter dw 0
+
+    loop_begin dw 0
+    nesting_level dw 0
+
+    code_buffer db code_buffer_size dup(?) ; BYTE!
+    data_buffer dw data_buffer_size dup(0) ; WORD!
+    file_descriptor dw 1 dup(?)
+    code_read dw 1 dup(?)
+
 .code
 org 100h
 
@@ -48,7 +52,7 @@ read_file:
     call check_error_2
     mov code_read, ax
 
-place_zero:
+place_null:
     lea bx, code_buffer
     add bx, code_read
     inc bx
@@ -59,8 +63,15 @@ init_interpret:
     mov code_pointer, ax
     lea ax, data_buffer
     mov data_pointer, ax
+    push code_pointer
+    call interpret
+    jmp exit
 
-interpret:
+interpret proc
+    pop ax ; return address
+    pop si ; code pointer
+    mov code_pointer, si
+    push ax ; place return address back
 
     interpret_loop:
         switch:
@@ -84,6 +95,9 @@ interpret:
 
             cmp dl, ','
             je case_6
+
+            cmp dl, '['
+            je case_7
 
             jmp break
 
@@ -110,7 +124,7 @@ interpret:
         case_5:
             mov ah, 40h ; syscall write file
             mov bx, 1 ; to stdout
-            mov cx, 2 ; number of bytes to write
+            mov cx, 1 ; number of bytes to write
             mov dx, data_pointer ; by current pointer
             int 21h
             jmp break
@@ -118,19 +132,74 @@ interpret:
         case_6:
             mov ah, 3fh ; syscall read file
             mov bx, 0 ; from stdin
-            mov cx, 2 ; bytes to read
+            mov cx, 1 ; bytes to read
             mov dx, data_pointer ; to current pointer
             int 21h
             jmp break
         
+        case_7:
+            mov ax, code_pointer
+            inc ax
+            mov loop_begin, ax
+
+            mov nesting_level, 1
+            for_loop:
+                brackets_switch:
+                    mov bx, code_pointer
+                    mov dl, byte ptr ds:[bx]
+
+                    cmp dl, '['
+                    je case_brackets_1
+
+                    cmp dl, ']'
+                    je case_brackets_2
+                    jmp brackets_break
+
+                    case_brackets_1:
+                        inc nesting_level
+                        jmp brackets_break
+
+                    case_brackets_2:
+                        dec nesting_level
+                        jmp brackets_break
+
+                    brackets_break:
+                        inc code_pointer
+                        cmp nesting_level, 0
+                        jne for_loop
+
+            mov bx, code_pointer
+            mov byte ptr ds:[bx], 0
+
+            while_loop:
+                mov bx, data_pointer
+                mov dx, word ptr ds:[bx]
+                cmp dx, 0
+                je while_break
+
+                push code_pointer
+                push loop_begin
+                call interpret
+                pop code_pointer
+                jmp while_loop
+
+            while_break:
+            mov bx, code_pointer
+            mov byte ptr ds:[bx], ']'
+
         break:
             inc code_pointer
             mov bx, code_pointer
             mov ah, byte ptr ds:[bx]
             cmp ah, 0
-            jne interpret_loop
-            mov ah, 4ch
-            int 21h
+            ;jne word ptr [interpret_loop] ; long jmp
+            ;jne interpret_loop
+            je skip
+            jmp interpret_loop
+            skip:
+            ret
+            
+interpret endp
 
 exit:
     mov ah, 4ch
