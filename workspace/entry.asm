@@ -11,14 +11,15 @@
     code_buffer_size equ 10000
     data_buffer_size equ 10000
 
-    ;code_buffer equ 10000 ; with God help there will be no important data
-    code_buffer db 10000 dup(?)
-    data_buffer equ 20000
-    file_descriptor equ 20001
-    code_read equ 20003
+    code_buffer db code_buffer_size dup(?) ; BYTE!
+    data_buffer dw data_buffer_size dup(?) ; WORD!
+    file_descriptor dw 1 dup(?)
+    code_read dw 1 dup(?)
     
     code_pointer dw 0
     data_pointer dw 0
+
+    counter dw 0
 .code
 org 100h
 
@@ -36,72 +37,74 @@ open_file:
     mov dx, 82h ; address at which command line is stored 
     int 21h
     call check_error_1
-    mov ds:[file_descriptor], ax 
-    
+    mov file_descriptor, ax 
+ 
 read_file:
     mov ah, 3fh ; syscall read file
-    mov bx, ds:[file_descriptor]
+    mov bx, file_descriptor
     mov cx, code_buffer_size ; bytes to read
-    mov dx, code_buffer ; to read into code_buffer
+    lea dx, code_buffer ; to read into code_buffer
     int 21h
     call check_error_2
-    mov ds:[code_read], ax
+    mov code_read, ax
 
 init_interpret:
-    mov code_pointer, code_buffer
-    mov data_pointer, data_buffer
+    lea ax, code_buffer
+    mov code_pointer, ax
+    lea ax, data_buffer
+    mov data_pointer, ax
 
 interpret:
 
     interpret_loop:
         switch:
-            mov dx, ds:[code_pointer]
+            mov bx, code_pointer
+            mov dl, byte ptr ds:[bx]
 
-            cmp dx, '<'
+            cmp dl, '<'
             je case_1
 
-            cmp dx, '>'
+            cmp dl, '>'
             je case_2
 
-            cmp dx, '+'
+            cmp dl, '+'
             je case_3
 
-            cmp dx, '-'
+            cmp dl, '-'
             je case_4
 
-            cmp dx, '.'
+            cmp dl, '.'
             je case_5
 
-            cmp dx, ','
+            cmp dl, ','
             je case_6
 
-            cmp dx, 0
-            jne break
-            mov ah, 4ch
-            int 21h
-
-            ;jmp break
+            jmp break
 
         case_1:
+            dec data_pointer
             dec data_pointer
             jmp break
 
         case_2:
             inc data_pointer
+            inc data_pointer
             jmp break
 
         case_3:
-            inc [data_pointer]
+            mov bx, data_pointer
+            inc word ptr ds:[bx]
             jmp break
 
         case_4:
-            dec [data_pointer]
+            mov bx, data_pointer
+            dec word ptr ds:[bx]
             jmp break
 
         case_5:
             mov ah, 40h ; syscall write file
             mov bx, 1 ; to stdout
-            mov cx, 1 ; number of bytes to write
+            mov cx, 2 ; number of bytes to write
             mov dx, data_pointer ; by current pointer
             int 21h
             jmp break
@@ -109,26 +112,20 @@ interpret:
         case_6:
             mov ah, 3fh ; syscall read file
             mov bx, 0 ; from stdin
-            mov cx, 1 ; bytes to read
+            mov cx, 2 ; bytes to read
             mov dx, data_pointer ; to current pointer
             int 21h
             jmp break
         
         break:
             inc code_pointer
-            jmp interpret_loop
-            ;cmp code_pointer, [code_read]
-            ;jne interpret_loop
-            ;ret
-    
-; write_stdout:
-;     mov ah, 40h ; syscall write file
-;     mov bx, 1 ; to stdout
-;     mov cx, ds:[code_read] ; number of bytes to write
-;     mov dx, code_buffer ; from code_buffer
-;     int 21h
-;     call check_error
-    
+            inc counter
+            mov ax, counter
+            cmp ax, code_read
+            jne interpret_loop
+            mov ah, 4ch
+            int 21h
+
 exit:
     mov ah, 4ch
     int 21h
