@@ -1,13 +1,6 @@
 .model tiny
-
-;.stack 100h
  
 .data
-    error_file_nf db "file not found", 0
-    error_read db "error read", 0
-    err_read_length equ ($ - error_read)
-    err_length equ 15
-
     code_buffer_size equ 10001
     data_buffer_size equ 10000
     
@@ -17,7 +10,6 @@
     loop_begin dw 0
     nesting_level dw 0
 
-    ;code_buffer db ",>,.<." ; for debug
     code_buffer db code_buffer_size dup(?) ; BYTE!
     data_buffer dw data_buffer_size dup(?) ; WORD!
     file_descriptor dw 1 dup(?)
@@ -27,10 +19,6 @@
 org 100h
 
 start:
-
-; for debug
-; mov ax, @data
-; mov ds, ax
 
 place_null_char:
     mov cl, ds:[80h]
@@ -44,7 +32,6 @@ open_file:
     mov al, 0 ; read-only
     mov dx, 82h ; address at which command line is stored 
     int 21h
-    call check_error_1
     mov file_descriptor, ax 
  
 read_file:
@@ -53,7 +40,6 @@ read_file:
     mov cx, code_buffer_size ; bytes to read
     lea dx, code_buffer ; to read into code_buffer
     int 21h
-    call check_error_2
     mov code_read, ax
 
 place_null:
@@ -253,32 +239,5 @@ interpret endp
 exit:
     mov ah, 4ch
     int 21h
-    
-check_error_1 proc
-    jnc no_error_1 ; if error happened, carry flag is set
-    mov ah, 40h ; write
-    mov bx, 1 ; to stdout
-    mov cx, err_length ; error msg length
-    lea dx, error_file_nf ; from error msg
-    int 21h
-    mov ah, 4ch
-    int 21h
-    no_error_1:
-        ret
-check_error_1 endp
-
-check_error_2 proc
-    jnc no_error_2 ; if error happened, carry flag is set
-    mov ah, 40h ; write
-    mov bx, 1 ; to stdout
-    mov cx, err_read_length ; error msg length
-    lea dx, error_read ; from error msg
-    int 21h
-    mov ah, 4ch
-    int 21h
-    no_error_2:
-        ret
-check_error_2 endp
-
 
 end start
