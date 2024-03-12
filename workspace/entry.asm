@@ -19,7 +19,7 @@
 
     ;code_buffer db ",>,.<." ; for debug
     code_buffer db code_buffer_size dup(?) ; BYTE!
-    data_buffer dw data_buffer_size dup(0) ; WORD!
+    data_buffer dw data_buffer_size dup(?) ; WORD!
     file_descriptor dw 1 dup(?)
     code_read dw 1 dup(?)
 
@@ -61,6 +61,14 @@ place_null:
     add bx, code_read
     inc bx
     mov ds:[bx], byte ptr 0
+
+init_data_buffer:
+    mov bx, 0
+    init_data_buffer_loop:
+        mov byte ptr ds:[data_buffer + bx], 0
+        inc bx
+        cmp bx, 20000
+        jne init_data_buffer_loop
 
 init_interpret:
     lea ax, code_buffer
