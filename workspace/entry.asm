@@ -11,14 +11,13 @@
     code_buffer_size equ 10001
     data_buffer_size equ 10000
     
-    code_pointer dw 0
     data_pointer dw 0
 
-    counter dw 0
-
+    code_pointer dw 0
     loop_begin dw 0
     nesting_level dw 0
 
+    ;code_buffer db "[]+++++++++++++++++++++++++++++++++++++++++++++++++." ; for debug
     code_buffer db code_buffer_size dup(?) ; BYTE!
     data_buffer dw data_buffer_size dup(0) ; WORD!
     file_descriptor dw 1 dup(?)
@@ -28,6 +27,10 @@
 org 100h
 
 start:
+
+;mov ax, @data
+;mov ds, ax
+
 place_null_char:
     mov cl, ds:[80h]
     xor ch, ch
@@ -144,6 +147,7 @@ interpret proc
 
             mov nesting_level, 1
             for_loop:
+                inc code_pointer
                 brackets_switch:
                     mov bx, code_pointer
                     mov dl, byte ptr ds:[bx]
@@ -164,7 +168,6 @@ interpret proc
                         jmp brackets_break
 
                     brackets_break:
-                        inc code_pointer
                         cmp nesting_level, 0
                         jne for_loop
 
@@ -177,10 +180,14 @@ interpret proc
                 cmp dx, 0
                 je while_break
 
-                push code_pointer
-                push loop_begin
+                push loop_begin ; save state
+                push nesting_level ; save state
+                push code_pointer ; save state
+                push loop_begin ; argument for interpret
                 call interpret
-                pop code_pointer
+                pop code_pointer ; restore state
+                pop nesting_level ; restore state
+                pop loop_begin ; restore state
                 jmp while_loop
 
             while_break:
