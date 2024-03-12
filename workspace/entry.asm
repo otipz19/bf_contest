@@ -8,7 +8,6 @@
 
     code_pointer dw 0
     loop_begin dw 0
-    nesting_level dw 0
 
     code_buffer db code_buffer_size dup(?) ; BYTE!
     data_buffer dw data_buffer_size dup(?) ; WORD!
@@ -173,7 +172,7 @@ interpret proc
             inc ax
             mov loop_begin, ax
 
-            mov nesting_level, 1
+            mov cl, 1
             for_loop:
                 inc code_pointer
                 brackets_switch:
@@ -188,15 +187,15 @@ interpret proc
                     jmp brackets_break
 
                     case_brackets_1:
-                        inc nesting_level
+                        inc cl
                         jmp brackets_break
 
                     case_brackets_2:
-                        dec nesting_level
+                        dec cl
                         jmp brackets_break
 
                     brackets_break:
-                        cmp nesting_level, 0
+                        cmp cl, 0
                         jne for_loop
 
             mov bx, code_pointer
@@ -209,12 +208,10 @@ interpret proc
                 je while_break
 
                 push loop_begin ; save state
-                push nesting_level ; save state
                 push code_pointer ; save state
                 push loop_begin ; argument for interpret
                 call interpret
                 pop code_pointer ; restore state
-                pop nesting_level ; restore state
                 pop loop_begin ; restore state
                 jmp while_loop
 
