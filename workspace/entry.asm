@@ -55,24 +55,22 @@ init_data_buffer:
         jne init_data_buffer_loop
 
 init_interpret:
-    lea ax, code_buffer
-    mov si, ax
+    lea si, code_buffer
     lea ax, data_buffer
     mov data_pointer, ax
     push si
     call interpret
-    jmp exit
+    mov ah, 4ch
+    int 21h
 
 interpret proc
     pop ax ; return address
     pop si ; code pointer
-    mov si, si
     push ax ; place return address back
 
     interpret_loop:
         switch:
-            mov bx, si
-            mov dl, byte ptr ds:[bx]
+            mov dl, byte ptr ds:[si]
 
             cmp dl, '<'
             je case_1
@@ -175,8 +173,7 @@ interpret proc
             for_loop:
                 inc si
                 brackets_switch:
-                    mov bx, si
-                    mov dl, byte ptr ds:[bx]
+                    mov dl, byte ptr ds:[si]
 
                     cmp dl, '['
                     je case_brackets_1
@@ -197,8 +194,7 @@ interpret proc
                         cmp cl, 0
                         jne for_loop
 
-            mov bx, si
-            mov byte ptr ds:[bx], 0
+            mov byte ptr ds:[si], 0
 
             while_loop:
                 mov bx, data_pointer
@@ -215,25 +211,17 @@ interpret proc
                 jmp while_loop
 
             while_break:
-            mov bx, si
-            mov byte ptr ds:[bx], ']'
+            mov byte ptr ds:[si], ']'
 
         break:
             inc si
-            mov bx, si
-            mov ah, byte ptr ds:[bx]
+            mov ah, byte ptr ds:[si]
             cmp ah, 0
-            ;jne word ptr [interpret_loop] ; long jmp
-            ;jne interpret_loop
             je skip
             jmp interpret_loop
             skip:
             ret
             
 interpret endp
-
-exit:
-    mov ah, 4ch
-    int 21h
 
 end start
