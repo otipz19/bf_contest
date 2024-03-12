@@ -132,18 +132,12 @@ interpret proc
                 jne eof_check
                 ; if read 0Dh, read again to get only 0Ah
                 mov ah, 3fh ; syscall read file
-                mov bx, 0 ; from stdin
-                mov cx, 1 ; bytes to read
-                mov dx, di ; to current pointer
                 int 21h
 
             eof_check:
                 cmp ax, 0 ; if EOF - ax == 0
-                je if_eof
-                jmp break
-                if_eof:
+                jne break
                 mov word ptr ds:[di], -1
-                jmp break
 
             jmp break
         
@@ -168,7 +162,6 @@ interpret proc
 
                     case_brackets_2:
                         dec cl
-                        jmp brackets_break
 
                     brackets_break:
                         cmp cl, 0
