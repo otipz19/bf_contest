@@ -3,14 +3,15 @@
 .data
     code_buffer_size equ 10001
     data_buffer_size equ 10000
+    code_buffer_offset equ 10000
+    data_buffer_offset equ 20001
     
-    code_buffer db code_buffer_size dup(?) ; BYTE!
-    data_buffer dw data_buffer_size dup(?) ; WORD!
-
 .code
 org 100h
 
 start:
+    mov si, code_buffer_offset
+    mov di, data_buffer_offset
 
 place_null_char:
     mov cl, ds:[80h]
@@ -28,26 +29,24 @@ open_file:
 read_file:
     mov ah, 3fh ; syscall read file
     mov cx, code_buffer_size ; bytes to read
-    lea dx, code_buffer ; to read into code_buffer
+    mov dx, si ; to read into code_buffer
     int 21h
 
 place_null:
-    lea bx, code_buffer
+    mov bx, si
     add bx, ax ; in ax - count of bytes read from file
     inc bx
     mov ds:[bx], byte ptr 0
 
 init_data_buffer:
-    mov bx, 0
+    mov bx, di
     init_data_buffer_loop:
-        mov byte ptr ds:[data_buffer + bx], 0
+        mov byte ptr ds:[bx], 0
         inc bx
-        cmp bx, 20000
+        cmp bx, 20000 + data_buffer_offset
         jne init_data_buffer_loop
 
 init_interpret:
-    lea si, code_buffer
-    lea di, data_buffer
     push si
     call interpret
     ret
@@ -80,7 +79,6 @@ interpret proc
             cmp byte ptr ds:[si], '['
             je case_7
 
-            
         break:
             inc si
             cmp byte ptr ds:[si], 0
