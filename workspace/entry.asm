@@ -138,6 +138,10 @@ interpret proc
             mov cx, 1 ; bytes to read
             mov dx, data_pointer ; to current pointer
             int 21h
+            cmp ax, 0
+            jne break
+            mov bx, data_pointer
+            mov word ptr ds:[bx], -1
             jmp break
         
         case_7:
