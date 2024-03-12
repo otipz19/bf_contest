@@ -4,9 +4,9 @@
 
 === test2.b ===
 
-edcba
+edcba
 === test3.b ===
 
-13589лс
+13589лс
 === test4.b ===
 BB

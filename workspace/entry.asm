@@ -17,7 +17,7 @@
     loop_begin dw 0
     nesting_level dw 0
 
-    ;code_buffer db "[]+++++++++++++++++++++++++++++++++++++++++++++++++." ; for debug
+    ;code_buffer db ",>,.<." ; for debug
     code_buffer db code_buffer_size dup(?) ; BYTE!
     data_buffer dw data_buffer_size dup(0) ; WORD!
     file_descriptor dw 1 dup(?)
@@ -28,15 +28,16 @@ org 100h
 
 start:
 
-;mov ax, @data
-;mov ds, ax
+; for debug
+; mov ax, @data
+; mov ds, ax
 
 place_null_char:
     mov cl, ds:[80h]
     xor ch, ch
     mov bx, 81h
     add bx, cx
-    mov ds:[bx], 0
+    mov byte ptr ds:[bx], 0
 
 open_file:
     mov ah, 3dh ; syscall open file
@@ -100,7 +101,9 @@ interpret proc
             je case_6
 
             cmp dl, '['
-            je case_7
+            jne skip_case_7
+            jmp case_7
+            skip_case_7:
 
             jmp break
 
@@ -125,12 +128,22 @@ interpret proc
             jmp break
 
         case_5:
-            mov ah, 40h ; syscall write file
-            mov bx, 1 ; to stdout
-            mov cx, 1 ; number of bytes to write
-            mov dx, data_pointer ; by current pointer
-            int 21h
-            jmp break
+            enter_write_check:
+                ; if 0Ah at data_pointer
+                mov bx, data_pointer
+                cmp word ptr ds:[bx], 0Ah
+                jne write_char
+                ; write also 0Dh to stdout
+                mov ah, 02h ; write char in dl to stdout
+                mov dl, 0Dh
+                int 21h
+            write_char:
+                mov ah, 40h ; syscall write file
+                mov bx, 1 ; to stdout
+                mov cx, 1 ; number of bytes to write
+                mov dx, data_pointer ; by current pointer
+                int 21h
+                jmp break
 
         case_6:
             mov ah, 3fh ; syscall read file
@@ -138,10 +151,27 @@ interpret proc
             mov cx, 1 ; bytes to read
             mov dx, data_pointer ; to current pointer
             int 21h
-            cmp ax, 0
-            jne break
-            mov bx, data_pointer
-            mov word ptr ds:[bx], -1
+            
+            enter_check:
+                mov bx, data_pointer
+                cmp word ptr ds:[bx], 0Dh
+                jne eof_check
+                ; if read 0Dh, read again to get only 0Ah
+                mov ah, 3fh ; syscall read file
+                mov bx, 0 ; from stdin
+                mov cx, 1 ; bytes to read
+                mov dx, data_pointer ; to current pointer
+                int 21h
+
+            eof_check:
+                cmp ax, 0 ; if EOF - ax == 0
+                je if_eof
+                jmp break
+                if_eof:
+                mov bx, data_pointer
+                mov word ptr ds:[bx], -1
+                jmp break
+
             jmp break
         
         case_7:
