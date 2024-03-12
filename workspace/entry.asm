@@ -14,7 +14,6 @@ start:
 
 place_null_char:
     mov cl, ds:[80h]
-    xor ch, ch
     mov bx, 81h
     add bx, cx
     mov byte ptr ds:[bx], 0
@@ -79,11 +78,14 @@ interpret proc
             je case_6
 
             cmp byte ptr ds:[si], '['
-            jne skip_case_7
-            jmp case_7
-            skip_case_7:
+            je case_7
 
-            jmp break
+            
+        break:
+            inc si
+            cmp byte ptr ds:[si], 0
+            jne interpret_loop
+            ret
 
         case_1:
             dec di
@@ -150,18 +152,14 @@ interpret proc
                 inc si
                 brackets_switch:
                     cmp byte ptr ds:[si], '['
-                    je case_brackets_1
-
-                    cmp byte ptr ds:[si], ']'
-                    je case_brackets_2
+                    jne case_brackets_2
+                    inc cl
                     jmp brackets_break
 
-                    case_brackets_1:
-                        inc cl
-                        jmp brackets_break
-
                     case_brackets_2:
-                        dec cl
+                    cmp byte ptr ds:[si], ']'
+                    jne brackets_break
+                    dec cl
 
                     brackets_break:
                         cmp cl, 0
@@ -183,14 +181,7 @@ interpret proc
 
             while_break:
             mov byte ptr ds:[si], ']'
-
-        break:
-            inc si
-            cmp byte ptr ds:[si], 0
-            je skip
-            jmp interpret_loop
-            skip:
-            ret
+            jmp break
             
 interpret endp
 
