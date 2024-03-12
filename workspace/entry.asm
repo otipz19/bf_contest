@@ -4,8 +4,6 @@
     code_buffer_size equ 10001
     data_buffer_size equ 10000
     
-    loop_begin dw 0
-
     code_buffer db code_buffer_size dup(?) ; BYTE!
     data_buffer dw data_buffer_size dup(?) ; WORD!
     file_descriptor dw 1 dup(?)
@@ -157,9 +155,8 @@ interpret proc
             jmp break
         
         case_7:
-            mov ax, si
-            inc ax
-            mov loop_begin, ax
+            mov bp, si
+            inc bp
 
             mov cl, 1
             for_loop:
@@ -193,12 +190,12 @@ interpret proc
                 cmp dx, 0
                 je while_break
 
-                push loop_begin ; save state
+                push bp ; save state
                 push si ; save state
-                push loop_begin ; argument for interpret
+                push bp ; argument for interpret
                 call interpret
                 pop si ; restore state
-                pop loop_begin ; restore state
+                pop bp ; restore state
                 jmp while_loop
 
             while_break:
