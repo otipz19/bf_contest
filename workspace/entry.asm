@@ -6,7 +6,6 @@
     
     data_pointer dw 0
 
-    code_pointer dw 0
     loop_begin dw 0
 
     code_buffer db code_buffer_size dup(?) ; BYTE!
@@ -57,22 +56,22 @@ init_data_buffer:
 
 init_interpret:
     lea ax, code_buffer
-    mov code_pointer, ax
+    mov si, ax
     lea ax, data_buffer
     mov data_pointer, ax
-    push code_pointer
+    push si
     call interpret
     jmp exit
 
 interpret proc
     pop ax ; return address
     pop si ; code pointer
-    mov code_pointer, si
+    mov si, si
     push ax ; place return address back
 
     interpret_loop:
         switch:
-            mov bx, code_pointer
+            mov bx, si
             mov dl, byte ptr ds:[bx]
 
             cmp dl, '<'
@@ -168,15 +167,15 @@ interpret proc
             jmp break
         
         case_7:
-            mov ax, code_pointer
+            mov ax, si
             inc ax
             mov loop_begin, ax
 
             mov cl, 1
             for_loop:
-                inc code_pointer
+                inc si
                 brackets_switch:
-                    mov bx, code_pointer
+                    mov bx, si
                     mov dl, byte ptr ds:[bx]
 
                     cmp dl, '['
@@ -198,7 +197,7 @@ interpret proc
                         cmp cl, 0
                         jne for_loop
 
-            mov bx, code_pointer
+            mov bx, si
             mov byte ptr ds:[bx], 0
 
             while_loop:
@@ -208,20 +207,20 @@ interpret proc
                 je while_break
 
                 push loop_begin ; save state
-                push code_pointer ; save state
+                push si ; save state
                 push loop_begin ; argument for interpret
                 call interpret
-                pop code_pointer ; restore state
+                pop si ; restore state
                 pop loop_begin ; restore state
                 jmp while_loop
 
             while_break:
-            mov bx, code_pointer
+            mov bx, si
             mov byte ptr ds:[bx], ']'
 
         break:
-            inc code_pointer
-            mov bx, code_pointer
+            inc si
+            mov bx, si
             mov ah, byte ptr ds:[bx]
             cmp ah, 0
             ;jne word ptr [interpret_loop] ; long jmp
