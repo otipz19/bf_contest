@@ -6,8 +6,6 @@
     
     code_buffer db code_buffer_size dup(?) ; BYTE!
     data_buffer dw data_buffer_size dup(?) ; WORD!
-    file_descriptor dw 1 dup(?)
-    code_read dw 1 dup(?)
 
 .code
 org 100h
@@ -26,19 +24,17 @@ open_file:
     mov al, 0 ; read-only
     mov dx, 82h ; address at which command line is stored 
     int 21h
-    mov file_descriptor, ax 
+    mov bx, ax ; save file descriptor
  
 read_file:
     mov ah, 3fh ; syscall read file
-    mov bx, file_descriptor
     mov cx, code_buffer_size ; bytes to read
     lea dx, code_buffer ; to read into code_buffer
     int 21h
-    mov code_read, ax
 
 place_null:
     lea bx, code_buffer
-    add bx, code_read
+    add bx, ax ; in ax - count of bytes read from file
     inc bx
     mov ds:[bx], byte ptr 0
 
