@@ -51,8 +51,7 @@ init_interpret:
     lea di, data_buffer
     push si
     call interpret
-    mov ah, 4ch
-    int 21h
+    ret
 
 interpret proc
     pop ax ; return address
@@ -61,27 +60,25 @@ interpret proc
 
     interpret_loop:
         switch:
-            mov dl, byte ptr ds:[si]
-
-            cmp dl, '<'
+            cmp byte ptr ds:[si], '<'
             je case_1
 
-            cmp dl, '>'
+            cmp byte ptr ds:[si], '>'
             je case_2
 
-            cmp dl, '+'
+            cmp byte ptr ds:[si], '+'
             je case_3
 
-            cmp dl, '-'
+            cmp byte ptr ds:[si], '-'
             je case_4
 
-            cmp dl, '.'
+            cmp byte ptr ds:[si], '.'
             je case_5
 
-            cmp dl, ','
+            cmp byte ptr ds:[si], ','
             je case_6
 
-            cmp dl, '['
+            cmp byte ptr ds:[si], '['
             jne skip_case_7
             jmp case_7
             skip_case_7:
@@ -158,12 +155,10 @@ interpret proc
             for_loop:
                 inc si
                 brackets_switch:
-                    mov dl, byte ptr ds:[si]
-
-                    cmp dl, '['
+                    cmp byte ptr ds:[si], '['
                     je case_brackets_1
 
-                    cmp dl, ']'
+                    cmp byte ptr ds:[si], ']'
                     je case_brackets_2
                     jmp brackets_break
 
@@ -182,8 +177,7 @@ interpret proc
             mov byte ptr ds:[si], 0
 
             while_loop:
-                mov dx, word ptr ds:[di]
-                cmp dx, 0
+                cmp word ptr ds:[di], 0
                 je while_break
 
                 push bp ; save state
@@ -199,8 +193,7 @@ interpret proc
 
         break:
             inc si
-            mov ah, byte ptr ds:[si]
-            cmp ah, 0
+            cmp byte ptr ds:[si], 0
             je skip
             jmp interpret_loop
             skip:
