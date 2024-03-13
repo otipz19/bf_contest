@@ -2,9 +2,9 @@
  
 .data
     code_buffer_size equ 10001
-    data_buffer_size equ 10000
-    code_buffer_offset equ 10000
-    data_buffer_offset equ 20001
+    data_buffer_size equ 20000
+    code_buffer_offset equ 20000
+    data_buffer_offset equ 10000
     
 .code
 org 100h
@@ -14,12 +14,10 @@ start:
     mov di, data_buffer_offset
 
 init_buffers:
-    mov bx, si
-    init_data_buffer_loop:
-        mov byte ptr ds:[bx], 0
-        inc bx
-        cmp bx, 30001 + code_buffer_offset
-        jne init_data_buffer_loop
+    mov cx, data_buffer_size + code_buffer_size
+    xor ax, ax
+    rep stosb
+    mov di, data_buffer_offset
 
 place_null_char:
     mov cl, ds:[80h]
