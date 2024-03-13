@@ -13,6 +13,14 @@ start:
     mov si, code_buffer_offset
     mov di, data_buffer_offset
 
+init_buffers:
+    mov bx, si
+    init_data_buffer_loop:
+        mov byte ptr ds:[bx], 0
+        inc bx
+        cmp bx, 30001 + code_buffer_offset
+        jne init_data_buffer_loop
+
 place_null_char:
     mov cl, ds:[80h]
     mov bx, 81h
@@ -31,20 +39,6 @@ read_file:
     mov cx, code_buffer_size ; bytes to read
     mov dx, si ; to read into code_buffer
     int 21h
-
-place_null:
-    mov bx, si
-    add bx, ax ; in ax - count of bytes read from file
-    inc bx
-    mov ds:[bx], byte ptr 0
-
-init_data_buffer:
-    mov bx, di
-    init_data_buffer_loop:
-        mov byte ptr ds:[bx], 0
-        inc bx
-        cmp bx, 20000 + data_buffer_offset
-        jne init_data_buffer_loop
 
 init_interpret:
     push si
