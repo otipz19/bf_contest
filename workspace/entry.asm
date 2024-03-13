@@ -58,25 +58,27 @@ interpret proc
 
     interpret_loop:
         switch:
-            cmp byte ptr ds:[si], '<'
+            mov al, byte ptr ds:[si]
+
+            cmp al, '<'
             je case_1
 
-            cmp byte ptr ds:[si], '>'
+            cmp al, '>'
             je case_2
 
-            cmp byte ptr ds:[si], '+'
+            cmp al, '+'
             je case_3
 
-            cmp byte ptr ds:[si], '-'
+            cmp al, '-'
             je case_4
 
-            cmp byte ptr ds:[si], '.'
+            cmp al, '.'
             je case_5
 
-            cmp byte ptr ds:[si], ','
+            cmp al, ','
             je case_6
 
-            cmp byte ptr ds:[si], '['
+            cmp al, '['
             je case_7
 
         break:
