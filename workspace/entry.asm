@@ -125,10 +125,8 @@ interpret proc
             
             enter_check:
                 cmp word ptr ds:[di], 0Dh
-                jne eof_check
                 ; if read 0Dh, read again to get only 0Ah
-                mov ah, 3fh ; syscall read file
-                int 21h
+                je case_6
 
             eof_check:
                 cmp ax, 0 ; if EOF - ax == 0
