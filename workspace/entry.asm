@@ -124,14 +124,14 @@ interpret proc
                 je case_6
 
             eof_check:
-                cmp ax, 0 ; if EOF - ax == 0
-                jne break
+                test ax, ax ; if EOF - ax == 0
+                jnz break
                 mov word ptr ds:[di], -1
 
             jmp break
         
         case_7:
-            mov bp, si
+            mov bp, si ; loop_begin
             inc bp
 
             mov al, 1
@@ -141,7 +141,6 @@ interpret proc
                     cmp byte ptr ds:[si], '['
                     jne case_brackets_2
                     inc al
-                    jmp brackets_break
 
                     case_brackets_2:
                     cmp byte ptr ds:[si], ']'
@@ -149,13 +148,13 @@ interpret proc
                     dec al
 
                     brackets_break:
-                        cmp al, 0
-                        jne for_loop
+                        test al, al
+                        jnz for_loop
 
-            mov byte ptr ds:[si], 0
+            mov byte ptr ds:[si], al
 
             while_loop:
-                cmp word ptr ds:[di], 0
+                cmp word ptr ds:[di], 0 
                 je while_break
 
                 push bp ; save state
