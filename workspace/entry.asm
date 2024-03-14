@@ -38,6 +38,9 @@ read_file:
     mov dx, si ; to read into code_buffer
     int 21h
 
+prer_read_write:
+    mov cx, 1 ; number of bytes to read/write
+
 init_interpret:
     push si
     call interpret
@@ -109,7 +112,6 @@ interpret proc
             write_char:
                 mov ah, 40h ; syscall write file
                 mov bx, 1 ; to stdout
-                mov cx, 1 ; number of bytes to write
                 mov dx, di ; by current pointer
                 int 21h
                 jmp break
@@ -117,7 +119,6 @@ interpret proc
         case_6:
             mov ah, 3fh ; syscall read file
             mov bx, 0 ; from stdin
-            mov cx, 1 ; bytes to read
             mov dx, di ; to current pointer
             int 21h
             
@@ -137,22 +138,22 @@ interpret proc
             mov bp, si
             inc bp
 
-            mov cl, 1
+            mov al, 1
             for_loop:
                 inc si
                 brackets_switch:
                     cmp byte ptr ds:[si], '['
                     jne case_brackets_2
-                    inc cl
+                    inc al
                     jmp brackets_break
 
                     case_brackets_2:
                     cmp byte ptr ds:[si], ']'
                     jne brackets_break
-                    dec cl
+                    dec al
 
                     brackets_break:
-                        cmp cl, 0
+                        cmp al, 0
                         jne for_loop
 
             mov byte ptr ds:[si], 0
