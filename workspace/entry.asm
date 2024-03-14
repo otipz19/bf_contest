@@ -38,9 +38,6 @@ read_file:
     mov dx, si ; to read into code_buffer
     int 21h
 
-prer_read_write:
-    mov cx, 1 ; number of bytes to read/write
-
 init_interpret:
     push si
     call interpret
@@ -103,22 +100,21 @@ interpret proc
         case_5:
             enter_write_check:
                 ; if 0Ah at di
-                cmp word ptr ds:[di], 0Ah
+                mov ah, 02h ; write char in dl to stdout
+                cmp byte ptr ds:[di], 0Ah
                 jne write_char
                 ; write also 0Dh to stdout
-                mov ah, 02h ; write char in dl to stdout
                 mov dl, 0Dh
                 int 21h
             write_char:
-                mov ah, 40h ; syscall write file
-                mov bx, 1 ; to stdout
-                mov dx, di ; by current pointer
+                mov dl, byte ptr ds:[di] ; by current pointer
                 int 21h
                 jmp break
 
         case_6:
             mov ah, 3fh ; syscall read file
             mov bx, 0 ; from stdin
+            mov cx, 1 ; number of bytes to read/write
             mov dx, di ; to current pointer
             int 21h
             
