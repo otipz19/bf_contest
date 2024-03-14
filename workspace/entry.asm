@@ -19,23 +19,21 @@ init_buffers:
     rep stosb
     mov di, data_buffer_offset
 
-place_null_char:
-    mov cl, ds:[80h]
-    mov bx, 81h
-    add bx, cx
-    mov byte ptr ds:[bx], 0
+set_DTA:
+    mov ah, 1ah
+    mov dx, si ; code buffer
+    int 21h
 
 open_file:
-    mov ah, 3dh ; syscall open file
-    mov al, 0 ; read-only
-    mov dx, 82h ; address at which command line is stored 
+    mov ah, 0fh ; open file via FCB
+    mov dx, 5ch ; unopened FCB of first command line argument
     int 21h
-    mov bx, ax ; save file descriptor
- 
+
 read_file:
-    mov ah, 3fh ; syscall read file
-    mov cx, code_buffer_size ; bytes to read
-    mov dx, si ; to read into code_buffer
+    ;mov ah, 14h ; sequantial read via FCB
+    ;mov byte ptr ds:[7ch], 0 ; address of CurRec
+    mov ah, 27h ; random read via FCB
+    mov cl, 125 ; read 125 sectors of 80 bytes
     int 21h
 
 init_interpret:
