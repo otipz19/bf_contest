@@ -115,6 +115,9 @@ interpret proc
             mov cx, 1 ; number of bytes to read/write
             mov dx, di ; to current pointer
             int 21h
+            inc di
+            mov byte ptr ds:[di], 0
+            dec di
             
             enter_check:
                 cmp word ptr ds:[di], 0Dh
