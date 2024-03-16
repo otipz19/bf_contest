@@ -3,7 +3,7 @@
 .data
     code_buffer_size equ 10001
     data_buffer_size equ 20000
-    code_buffer_offset equ 20000
+    code_buffer_offset equ 30000
     data_buffer_offset equ 10000
     
 .code
