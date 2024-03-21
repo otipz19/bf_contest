@@ -107,7 +107,6 @@ interpret proc
                 test ax, ax ; if EOF - ax == 0
                 jnz break
                 mov word ptr ds:[di], -1
-            jmp break
 
             case_7:
             cmp al, '['
@@ -149,7 +148,6 @@ interpret proc
 
             while_break:
             mov byte ptr ds:[si], ']'
-            jmp break
 
         break:
             inc si
