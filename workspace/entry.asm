@@ -54,26 +54,22 @@ interpret proc
             jne case_2
             dec di
             dec di
-            jmp break
 
             case_2:
             cmp al, '>'
             jne case_3
             inc di
             inc di
-            jmp break
 
             case_3:
             cmp al, '+'
             jne case_4
             inc word ptr ds:[di]
-            jmp break
 
             case_4:
             cmp al, '-'
             jne case_5
             dec word ptr ds:[di]
-            jmp break
 
             case_5:
             cmp al, '.'
