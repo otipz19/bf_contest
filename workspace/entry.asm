@@ -49,52 +49,35 @@ interpret proc
         switch:
             mov al, byte ptr ds:[si]
 
+            case_1:
             cmp al, '<'
-            je case_1
+            jne case_2
+            dec di
+            dec di
+            jmp break
 
+            case_2:
             cmp al, '>'
-            je case_2
+            jne case_3
+            inc di
+            inc di
+            jmp break
 
+            case_3:
             cmp al, '+'
-            je case_3
-
-            cmp al, '-'
-            je case_4
-
-            cmp al, '.'
-            je case_5
-
-            cmp al, ','
-            je case_6
-
-            cmp al, '['
-            je case_7
-
-        break:
-            inc si
-            cmp byte ptr ds:[si], 0
-            jne interpret_loop
-            ret
-
-        case_1:
-            dec di
-            dec di
-            jmp break
-
-        case_2:
-            inc di
-            inc di
-            jmp break
-
-        case_3:
+            jne case_4
             inc word ptr ds:[di]
             jmp break
 
-        case_4:
+            case_4:
+            cmp al, '-'
+            jne case_5
             dec word ptr ds:[di]
             jmp break
 
-        case_5:
+            case_5:
+            cmp al, '.'
+            jne case_6
             enter_write_check:
                 ; if 0Ah at di
                 mov ah, 02h ; write char in dl to stdout
@@ -106,9 +89,12 @@ interpret proc
             write_char:
                 mov dl, byte ptr ds:[di] ; by current pointer
                 int 21h
-                jmp break
+            jmp break
 
-        case_6:
+            case_6:
+            cmp al, ','
+            jne case_7
+            read_again:
             mov ah, 3fh ; syscall read file
             mov bx, 0 ; from stdin
             mov cx, 1 ; number of bytes to read/write
@@ -119,16 +105,17 @@ interpret proc
             enter_check:
                 cmp word ptr ds:[di], 0Dh
                 ; if read 0Dh, read again to get only 0Ah
-                je case_6
+                je read_again
 
             eof_check:
                 test ax, ax ; if EOF - ax == 0
                 jnz break
                 mov word ptr ds:[di], -1
-
             jmp break
-        
-        case_7:
+
+            case_7:
+            cmp al, '['
+            jne break
             mov bp, si ; loop_begin
             inc bp
 
@@ -167,6 +154,14 @@ interpret proc
             while_break:
             mov byte ptr ds:[si], ']'
             jmp break
+
+        break:
+            inc si
+            cmp byte ptr ds:[si], 0
+            je skip
+            jmp interpret_loop
+            skip:
+            ret
             
 interpret endp
 
