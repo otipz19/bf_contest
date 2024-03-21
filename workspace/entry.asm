@@ -133,24 +133,25 @@ interpret proc
             mov bp, si ; loop_begin
             inc bp
 
-            mov al, 1
+            mov cx, 1
             for_loop:
                 inc si
                 brackets_switch:
-                    cmp byte ptr ds:[si], '['
+                    mov al, byte ptr ds:[si]
+                    cmp al, '['
                     jne case_brackets_2
-                    inc al
+                    inc cx
 
                     case_brackets_2:
-                    cmp byte ptr ds:[si], ']'
+                    cmp al, ']'
                     jne brackets_break
-                    dec al
+                    dec cx
 
                     brackets_break:
-                        test al, al
+                        test cx, cx
                         jnz for_loop
 
-            mov byte ptr ds:[si], al
+            mov byte ptr ds:[si], cl
 
             while_loop:
                 cmp word ptr ds:[di], 0 
