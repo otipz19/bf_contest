@@ -15,7 +15,6 @@ start:
 
 init_buffers:
     mov cx, data_buffer_size + code_buffer_size
-    xor ax, ax
     rep stosb
     mov di, data_buffer_offset
 
