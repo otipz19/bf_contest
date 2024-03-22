@@ -35,16 +35,7 @@ read_file:
     mov cl, 125 ; read 125 sectors of 80 bytes
     int 21h
 
-init_interpret:
-    push si
-    call interpret
-    ret
-
-interpret proc
-    pop ax ; return address
-    pop si ; code pointer
-    push ax ; place return address back
-
+interpret:
     interpret_loop:
         switch:
             mov al, byte ptr ds:[si]
@@ -110,9 +101,13 @@ interpret proc
 
             case_7:
             cmp al, '['
-            jne break
-            mov bp, si ; loop_begin
-            inc bp
+            jne case_8
+
+            push si ; save code_pointer
+            
+            while_loop:
+                cmp word ptr ds:[di], 0 
+                jne break
 
             mov cx, 1
             for_loop:
@@ -131,23 +126,14 @@ interpret proc
                     brackets_break:
                         test cx, cx
                         jnz for_loop
+                        pop dx
+                        jmp break
 
-            mov byte ptr ds:[si], cl
-
-            while_loop:
-                cmp word ptr ds:[di], 0 
-                je while_break
-
-                push bp ; save state
-                push si ; save state
-                push bp ; argument for interpret
-                call interpret
-                pop si ; restore state
-                pop bp ; restore state
-                jmp while_loop
-
-            while_break:
-            mov byte ptr ds:[si], ']'
+            case_8:
+            cmp al, ']'
+            jne break
+            pop si
+            dec si
 
         break:
             inc si
@@ -157,6 +143,4 @@ interpret proc
             skip:
             ret
             
-interpret endp
-
 end start
