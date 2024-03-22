@@ -39,6 +39,14 @@ interpret:
     interpret_loop:
         switch:
             mov al, byte ptr ds:[si]
+            
+            case_7:
+            cmp al, '['
+            je loop_interpret
+            
+            case_8:
+            cmp al, ']'
+            je restore_code_pointer
 
             case_1:
             cmp al, '<'
@@ -54,33 +62,12 @@ interpret:
 
             case_3:
             cmp al, '+'
-            jne case_4
-            inc word ptr ds:[di]
-
-            case_4:
-            cmp al, '-'
-            jne case_5
-            dec word ptr ds:[di]
-
-            case_5:
-            cmp al, '.'
             jne case_6
-            enter_write_check:
-                ; if 0Ah at di
-                mov ah, 02h ; write char in dl to stdout
-                cmp byte ptr ds:[di], 0Ah
-                jne write_char
-                ; write also 0Dh to stdout
-                mov dl, 0Dh
-                int 21h
-            write_char:
-                mov dl, byte ptr ds:[di] ; by current pointer
-                int 21h
-            jmp break
+            inc word ptr ds:[di]
 
             case_6:
             cmp al, ','
-            jne case_7
+            jne case_4
             read_again:
             mov ah, 3fh ; syscall read file
             mov cx, 1 ; number of bytes to read/write
@@ -98,13 +85,25 @@ interpret:
                 jnz break
                 mov word ptr ds:[di], -1
 
-            case_7:
-            cmp al, '['
-            je loop_interpret
-            
-            case_8:
-            cmp al, ']'
-            je restore_code_pointer
+            case_4:
+            cmp al, '-'
+            jne case_5
+            dec word ptr ds:[di]
+
+            case_5:
+            cmp al, '.'
+            jne break
+            enter_write_check:
+                ; if 0Ah at di
+                mov ah, 02h ; write char in dl to stdout
+                cmp byte ptr ds:[di], 0Ah
+                jne write_char
+                ; write also 0Dh to stdout
+                mov dl, 0Dh
+                int 21h
+            write_char:
+                mov dl, byte ptr ds:[di] ; by current pointer
+                int 21h
 
         break:
             inc si
