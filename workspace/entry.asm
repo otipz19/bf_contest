@@ -14,7 +14,7 @@ start:
     mov di, data_buffer_offset
 
 init_buffers:
-    mov cx, data_buffer_size + code_buffer_size
+    mov ch, 75h
     rep stosb
     mov di, data_buffer_offset
 
@@ -32,7 +32,7 @@ read_file:
     ;mov ah, 14h ; sequantial read via FCB
     ;mov byte ptr ds:[7ch], 0 ; address of CurRec
     mov ah, 27h ; random read via FCB
-    mov cl, 125 ; read 125 sectors of 80 bytes
+    mov ch, ah ; read 255 sectors of 80 bytes
     int 21h
 
 interpret:
@@ -139,7 +139,7 @@ interpret:
                     brackets_break:
                         test cx, cx
                         jnz for_loop
-                        pop dx
+                        pop bp
                         jmp break
 
             
