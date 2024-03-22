@@ -101,8 +101,24 @@ interpret:
 
             case_7:
             cmp al, '['
-            jne case_8
+            je loop_interpret
+            
+            case_8:
+            cmp al, ']'
+            je restore_code_pointer
 
+        break:
+            inc si
+            cmp byte ptr ds:[si], 0
+            je skip
+            jmp interpret_loop
+            skip:
+            ret
+
+        restore_code_pointer:
+            pop si
+
+        loop_interpret:
             push si ; save code_pointer
             
             while_loop:
@@ -129,18 +145,5 @@ interpret:
                         pop dx
                         jmp break
 
-            case_8:
-            cmp al, ']'
-            jne break
-            pop si
-            dec si
-
-        break:
-            inc si
-            cmp byte ptr ds:[si], 0
-            je skip
-            jmp interpret_loop
-            skip:
-            ret
             
 end start
