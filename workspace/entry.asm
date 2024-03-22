@@ -110,9 +110,7 @@ interpret:
         break:
             inc si
             cmp byte ptr ds:[si], 0
-            je skip
-            jmp interpret_loop
-            skip:
+            jne interpret_loop
             ret
 
         restore_code_pointer:
