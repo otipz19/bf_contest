@@ -86,7 +86,7 @@ interpret:
             mov cx, 1 ; number of bytes to read/write
             mov dx, di ; to current pointer
             int 21h
-            mov byte ptr ds:[di + 1], 0
+            mov byte ptr ds:[di + 1], bl
             
             enter_check:
                 cmp word ptr ds:[di], 0Dh
@@ -108,7 +108,7 @@ interpret:
 
         break:
             inc si
-            cmp byte ptr ds:[si], 0
+            cmp byte ptr ds:[si], bl
             jne interpret_loop
             ret
 
@@ -119,7 +119,7 @@ interpret:
             push si ; save code_pointer
             
             while_loop:
-                cmp word ptr ds:[di], 0 
+                cmp word ptr ds:[di], bx 
                 jne break
 
             mov cx, 1
