@@ -83,7 +83,6 @@ interpret:
             jne case_7
             read_again:
             mov ah, 3fh ; syscall read file
-            mov bx, 0 ; from stdin
             mov cx, 1 ; number of bytes to read/write
             mov dx, di ; to current pointer
             int 21h
